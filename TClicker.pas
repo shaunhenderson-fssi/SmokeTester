@@ -2469,7 +2469,7 @@ begin
   begin
     if (ParamCount < 2) or (ParamCount > 3) then
       raise Exception.Create(
-        'Usage: Clicker.exe --console <script-file> [Debug=true|false]');
+        'Usage: SmokeTester.exe --console <script-file> [Debug=true|false]');
     FScriptFilename := ParamStr(2);
   end
   else if ParamCount >= 1 then
@@ -2866,7 +2866,7 @@ begin
       FScriptFilename := dlg.FileName;
       mmoScript.Lines.LoadFromFile(FScriptFilename, TEncoding.UTF8);
       FScriptModified := False;
-      Caption := FScriptFilename + ' - Clicker';
+      Caption := FScriptFilename + ' - SmokeTester';
     end;
   finally
     dlg.Free;
@@ -2894,7 +2894,7 @@ begin
   FScriptFilename := '';
   mmoScript.Clear;
   FScriptModified := False;
-  Caption := 'Clicker';
+  Caption := 'SmokeTester';
 end;
 
 function TForm1.SaveScript: Boolean;
@@ -2930,7 +2930,7 @@ begin
     SL.Free;
   end;
 
-  Caption := FScriptFilename + ' - Clicker';
+  Caption := FScriptFilename + ' - SmokeTester';
   lblStatus.Caption := 'Saved';
 end;
 
@@ -3358,7 +3358,7 @@ begin
     SL.Add('    Tip: if using the short form, use MouseClick before this so the mouse can focus on the control');
     SL.Add('');
     SL.Add('  Load <filename>');
-    SL.Add('    Loads a script relative to the current script folder, the Clicker.exe folder, or C:\Scripts (in that order). The .script extension is optional.');
+    SL.Add('    Loads a script relative to the current script folder, the SmokeTester.exe folder, or C:\Scripts (in that order). The .script extension is optional.');
     SL.Add('  SetPause <time>');
     SL.Add('    Sets the global default time (in ms) between commands, the default is 100 ms. No default pause is added after Sleep, Load, or Alias.');
     SL.Add('  DebugMode On|Off');
@@ -3391,12 +3391,12 @@ begin
     SL.Add('    Outputs debug info under the mouse cursor. Useful if you dont know the window name or if it is borderless');
     SL.Add('    Tip: you can use the Sleep command to pause, then move the mouse into position');
     SL.Add('');
-    SL.Add('You can also use this in a batch file e.g. `Clicker.exe "C:\Scripts\filename.script"` and it will load and run the filename script');
+    SL.Add('You can also use this in a batch file e.g. `SmokeTester.exe "C:\Scripts\filename.script"` and it will load and run the filename script');
     SL.Add('  From here, you can use ERRORLEVEL to detect whether the script passed or failed. ERRORLEVEL 0 means success, ERRORLEVEL 1 means failure:');
     SL.Add('    @echo off');
     SL.Add('    setlocal');
     SL.Add('');
-    SL.Add('    set "CLICKER=C:\Program Files\Clicker\Clicker.exe"');
+    SL.Add('    set "CLICKER=C:\Program Files\SmokeTester\SmokeTester.exe"');
     SL.Add('    set "SCRIPT=C:\Scripts\Normal Sale.script"');
     SL.Add('');
     SL.Add('    "%CLICKER%" --console "%SCRIPT%" Debug=true');

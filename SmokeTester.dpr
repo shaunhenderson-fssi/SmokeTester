@@ -1,4 +1,4 @@
-program Clicker;
+program SmokeTester;
 
 uses
   System.SysUtils,
