@@ -1,3 +1,5 @@
+The project name is Clicker, the output exe name is SmokeTester.exe
+
 This program can interact with other Windows programs (using the Win32 API).
 
 It has the following features:
@@ -17,13 +19,13 @@ It has the following features:
 Run a script without opening the editor:
 
 ```text
-Clicker.exe --console path\to\script.script
+SmokeTester.exe --console path\to\script.script
 ```
 
 To enable debug mode when running from a batch file, add `Debug=true` after the script path:
 
 ```text
-Clicker.exe --console path\to\script.script Debug=true
+SmokeTester.exe --console path\to\script.script Debug=true
 ```
 
 For example, the included `single-script.bat` accepts it as an optional second argument:
@@ -34,7 +36,7 @@ single-script.bat "Normal Sale.script" Debug=true
 
 `Debug=false` can be used to explicitly disable it. The option is case-insensitive.
 
-Console mode returns exit code `0` on success and `1` if the script or program encounters an error. The existing `Clicker.exe <script-file>` invocation
+Console mode returns exit code `0` on success and `1` if the script or program encounters an error. The existing `SmokeTester.exe <script-file>` invocation
 continues to run the script in the GUI.
 
 It can perform the following tasks:
@@ -46,7 +48,7 @@ It can perform the following tasks:
 - PressKey <keyName> (you can also specify combinations like "Alt+F4" or "Control+Enter")
 - TypeText <text>
 - TypePassword <encryptedText> or TypePassword <form|dialog> <field|control> <encryptedText> (this means unencrypted passwords are not stored in scripts)
-- Load <filename> (searched relative to the current script, Clicker.exe, then C:\Scripts; `.script` extension is optional)
+- Load <filename> (searched relative to the current script, SmokeTester.exe, then C:\Scripts; `.script` extension is optional)
 - SetPause <time> (global pause time in between commands)
 - DebugMode On|Off (enables or disables debug mode and updates the form checkbox)
 - Sleep <milliseconds>
@@ -113,7 +115,7 @@ The control under those coordinates (including a memo nested under another child
 In the program, use Help > Reference to get a list of commands and an explanation of usage
 
 The main window follows the Windows app theme setting (Settings > Personalization > Colors > Choose your mode). If you use Custom mode, set the default app
-mode to Dark. Clicker updates automatically when the Windows setting changes.
+mode to Dark. SmokeTester updates automatically when the Windows setting changes.
 
 Script lines support inline comments beginning with `;`, `#`, or `//`. The comment marker and everything after it are ignored through the end of the line.
 Comment markers inside double-quoted text are preserved. A `#RRGGBB` value used by `Assert Color` is treated as a color, not a comment; other `#` markers
