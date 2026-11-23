@@ -40,29 +40,30 @@ Console mode returns exit code `0` on success and `1` if the script or program e
 continues to run the script in the GUI.
 
 It can perform the following tasks:
-- ClickButton <buttonText>
-- ClickElement
-- MouseClick <x> <y> [Left|Right|Middle]
-- MouseWheel <x> <y> <delta>
-- SetText <dialogName> <controlName> <value>
-- PressKey <keyName> (you can also specify combinations like "Alt+F4" or "Control+Enter")
-- TypeText <text>
-- TypePassword <encryptedText> or TypePassword <form|dialog> <field|control> <encryptedText> (this means unencrypted passwords are not stored in scripts)
-- Load <filename> (searched relative to the current script, SmokeTester.exe, then C:\Scripts; `.script` extension is optional)
-- SetPause <time> (global pause time in between commands)
-- DebugMode On|Off (enables or disables debug mode and updates the form checkbox)
-- Sleep <milliseconds>
-- Alias <name> <value>
-- Assert <Button|Edit|Memo> <name|id|hwnd> "Expected text"
-- Assert <Button|Edit|Memo> <WindowName> <name|id|hwnd> "Expected text"
-- Assert <Button|Edit|Memo> <screenX> <screenY> "Expected text"
-- Assert <Button|Edit|Memo> <coordinateAlias> "Expected text"
-- Close <windowName>
-- Stop (halts the current script immediately and skips remaining commands)
-- Assert Color <x> <y> <#RRGGBB|colorName> (useful for detecting Club+ logo)
-- LaneTool
-- DumpWindow <windowName>
-- DumpHere
+- `ClickButton <buttonText>`
+- `ClickElement <elementName>`
+- `MouseClick <x> <y> [Left|Right|Middle]` (default is left)
+- `MouseWheel <x> <y> <delta>`
+- `SetText <dialogName> <controlName> <value>`
+- `PressKey <keyName>` (you can also specify combinations like "Alt+F4" or "Control+Enter")
+- `TypeText <text>`
+- `TypePassword <encryptedText>` or `TypePassword <form|dialog> <field|control> <encryptedText>` (this means unencrypted passwords are not stored in scripts)
+- `Load <filename>` (searched relative to the current script, SmokeTester.exe, then C:\Scripts; `.script` extension is optional)
+- `SetPause <time>` (global pause time in between commands)
+- `DebugMode On|Off` (enables or disables debug mode and updates the form checkbox)
+- `Sleep <milliseconds>`
+- `Alias <name> <value|X Y>`
+- `Assert <Button|Edit|Memo> <name|id|hwnd> "Expected text"`
+- `Assert <Button|Edit|Memo> <WindowName> <name|id|hwnd> "Expected text"`
+- `Assert <Button|Edit|Memo> <screenX> <screenY> "Expected text"`
+- `Assert <Button|Edit|Memo> <coordinateAlias> "Expected text"`
+- `Assert Color <x> <y> <#RRGGBB|colorName>` (useful for detecting Club+ logo)
+- `Close <windowName>`
+- `Stop` (halts the current script immediately and skips remaining commands)
+- `LaneTool`
+- `DumpWindow <windowName>` (useful for debugging)
+- `DumpHere` (useful for debugging)
+For more information go to Help > Reference.
 
 When running a script in the editor, `Load` runs the included script without replacing the editor contents. Errors identify the file and line where they occurred.
 
