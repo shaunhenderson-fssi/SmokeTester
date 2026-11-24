@@ -462,10 +462,8 @@ var
   IsKeyUp: Boolean;
   ProcessId: DWORD;
 begin
-  if (nCode = HC_ACTION) and (GRecorderForm <> nil) and
-    GRecorderForm.FRecording and
-    ((wParam = WM_KEYDOWN) or (wParam = WM_SYSKEYDOWN) or
-     (wParam = WM_KEYUP) or (wParam = WM_SYSKEYUP)) then
+  if (nCode = HC_ACTION) and (GRecorderForm <> nil) and GRecorderForm.FRecording and
+    ((wParam = WM_KEYDOWN) or (wParam = WM_SYSKEYDOWN) or (wParam = WM_KEYUP) or (wParam = WM_SYSKEYUP)) then
   begin
     KeyInfo := PMacroKeyboardHookInfo(lParam);
     VKCode := KeyInfo.vkCode;
@@ -503,8 +501,7 @@ var
   WheelDelta: SmallInt;
   Button: string;
 begin
-  if (nCode = HC_ACTION) and (GRecorderForm <> nil) and
-    GRecorderForm.FRecording then
+  if (nCode = HC_ACTION) and (GRecorderForm <> nil) and GRecorderForm.FRecording then
   begin
     MouseInfo := PMacroMouseHookInfo(lParam);
     if (MouseInfo.flags and LLMHF_INJECTED_FLAG) = 0 then
@@ -616,8 +613,7 @@ end;
 /// </summary>
 procedure TInspectorOverlay.HideInfo;
 begin
-  if FInfoVisible or ((FTargetRect.Right > FTargetRect.Left) and
-    (FTargetRect.Bottom > FTargetRect.Top)) then
+  if FInfoVisible or ((FTargetRect.Right > FTargetRect.Left) and (FTargetRect.Bottom > FTargetRect.Top)) then
   begin
     FInfoVisible := False;
     FTargetRect := Rect(0, 0, 0, 0);
@@ -648,9 +644,7 @@ begin
   Canvas.Brush.Color := clFuchsia;
   Canvas.FillRect(ClientRect);
 
-  if FInfoVisible and
-    (FTargetRect.Right > FTargetRect.Left) and
-    (FTargetRect.Bottom > FTargetRect.Top) then
+  if FInfoVisible and (FTargetRect.Right > FTargetRect.Left) and (FTargetRect.Bottom > FTargetRect.Top) then
   begin
     LocalTarget := FTargetRect;
     OffsetRect(LocalTarget, -Left, -Top);
@@ -1271,16 +1265,13 @@ var
       end;
       if (ch = '#') and not inQuote then
       begin
-        IsHexColor := not HexColorConsumed and
-          IsAssertColorValuePosition(Copy(S, 1, i - 1)) and
-          (i + 6 <= Length(S));
+        IsHexColor := not HexColorConsumed and IsAssertColorValuePosition(Copy(S, 1, i - 1)) and (i + 6 <= Length(S));
         if IsHexColor then
           for var HexIndex := i + 1 to i + 6 do
             if not CharInSet(S[HexIndex], ['0'..'9', 'a'..'f', 'A'..'F']) then
               IsHexColor := False;
 
-        if IsHexColor and
-          ((i + 6 = Length(S)) or CharInSet(S[i + 7], [#9, ' '])) then
+        if IsHexColor and ((i + 6 = Length(S)) or CharInSet(S[i + 7], [#9, ' '])) then
         begin
           HexColorConsumed := True;
           Inc(i, 7);
@@ -1760,8 +1751,7 @@ begin
   if Length(Parts) <> 2 then
     Exit;
 
-  Result := TryStrToInt(Parts[0], ScreenX) and
-    TryStrToInt(Parts[1], ScreenY);
+  Result := TryStrToInt(Parts[0], ScreenX) and TryStrToInt(Parts[1], ScreenY);
 end;
 
 /// <summary>
@@ -2562,13 +2552,13 @@ var
 begin
   if IsDark then
   begin
-    TextColor := RGB(240, 240, 240);
-    BackgroundColor := RGB(30, 30, 30);
+    TextColor := RGB(240, 240, 240); //white
+    BackgroundColor := RGB(30, 30, 30); //black
   end
   else
   begin
-    TextColor := clWindowText;
-    BackgroundColor := clWindow;
+    TextColor := clWindowText; //black
+    BackgroundColor := clWindow; //white
   end;
 
   SavedSelStart := mmoScript.SelStart;
@@ -2642,8 +2632,7 @@ var
 
     if HashPosition + 6 = Length(Line) then
       Exit(True);
-    Result := (HashPosition + 7 <= Length(Line)) and
-      IsWhitespace(Line[HashPosition + 7]);
+    Result := (HashPosition + 7 <= Length(Line)) and IsWhitespace(Line[HashPosition + 7]);
   end;
 
   function FindCommentStart(const Value: string): Integer;
@@ -2709,17 +2698,17 @@ begin
   try
     if FIsDarkTheme then
     begin
-      DefaultColor := RGB(240, 240, 240);
-      ClickColor := RGB(86, 156, 214);
-      InputColor := RGB(220, 160, 110);
-      CommentColor := RGB(106, 153, 85);
+      DefaultColor := RGB(240, 240, 240); //white
+      ClickColor := RGB(86, 156, 214); //blue
+      InputColor := RGB(220, 160, 110); //orange
+      CommentColor := RGB(106, 153, 85); //green
     end
     else
     begin
-      DefaultColor := clWindowText;
-      ClickColor := RGB(0, 0, 192);
-      InputColor := RGB(192, 96, 0);
-      CommentColor := RGB(0, 128, 0);
+      DefaultColor := clWindowText; //black
+      ClickColor := RGB(0, 0, 192); //blue
+      InputColor := RGB(192, 96, 0); //orange
+      CommentColor := RGB(0, 128, 0); //green
     end;
 
     if ResetAll then
@@ -2971,7 +2960,7 @@ var
     CaptionText := StringReplace(CaptionText, LF, ' ', [rfReplaceAll]);
 
     if Length(CaptionText) > 100 then
-      CaptionText := Copy(CaptionText, 1, 97) + '...';
+      CaptionText := Copy(CaptionText, 1, 97) + '…';
 
     if CaptionText = '' then
       CaptionText := '(none)';
@@ -2983,7 +2972,7 @@ var
       ParentText := '(none)';
 
     if Length(ParentText) > 50 then
-      ParentText := Copy(ParentText, 1, 47) + '...';
+      ParentText := Copy(ParentText, 1, 47) + '…';
 
     if not GetWindowRect(h, R) then
       R := Rect(0, 0, 0, 0);
@@ -3227,7 +3216,7 @@ end;
 procedure TForm1.AppendRecordedCommand(const Command: string);
 begin
   mmoScript.Lines.Add(Command);
-  lblStatus.Caption := 'Recording macro...';
+  lblStatus.Caption := 'Recording macro…';
 end;
 
 /// <summary>
@@ -3266,9 +3255,7 @@ begin
     AppendRecordedCommand(Format('ClickButton %s %s', [QuoteScriptToken(WindowName), QuoteScriptToken(ButtonName)]))
   else
   begin
-    if (Control <> 0) and GetWindowRect(Control, ControlRect) and
-      (ControlRect.Right > ControlRect.Left) and
-      (ControlRect.Bottom > ControlRect.Top) then
+    if (Control <> 0) and GetWindowRect(Control, ControlRect) and (ControlRect.Right > ControlRect.Left) and (ControlRect.Bottom > ControlRect.Top) then
     begin
       ScreenX := (ControlRect.Left + ControlRect.Right) div 2;
       ScreenY := (ControlRect.Top + ControlRect.Bottom) div 2;
@@ -3313,7 +3300,7 @@ begin
 
     FRecording := True;
     btnRecord.Caption := 'Stop';
-    lblStatus.Caption := 'Recording macro...';
+    lblStatus.Caption := 'Recording macro…';
     mmoScript.Lines.Add('; Recorded macro');
   end
   else
@@ -3511,7 +3498,7 @@ begin
   FScriptModified := True;
 
   if FRecording then
-    lblStatus.Caption := 'Recording macro...'
+    lblStatus.Caption := 'Recording macro…'
   else
     lblStatus.Caption := 'Ready';
 
@@ -3753,8 +3740,7 @@ begin
     end;
 
     // ---- COMMAND DISPATCH ----
-    if IsEditorSource and (sourceLineNumber >= 0) and
-      (sourceLineNumber < mmoLineNumbers.Lines.Count) then
+    if IsEditorSource and (sourceLineNumber >= 0) and (sourceLineNumber < mmoLineNumbers.Lines.Count) then
     begin
       mmoLineNumbers.Lines[sourceLineNumber] := Format('%s %d', [RUNNING, sourceLineNumber + 1]);
       Application.ProcessMessages;
@@ -3764,20 +3750,17 @@ begin
     begin
       if FScriptFailed then
       begin
-        if IsEditorSource and (sourceLineNumber >= 0) and
-          (sourceLineNumber < mmoLineNumbers.Lines.Count) then
+        if IsEditorSource and (sourceLineNumber >= 0) and (sourceLineNumber < mmoLineNumbers.Lines.Count) then
           mmoLineNumbers.Lines[sourceLineNumber] := Format('%s %d', [ERROR, sourceLineNumber + 1]);
         Exit;
       end;
 
-      if IsEditorSource and (sourceLineNumber >= 0) and
-        (sourceLineNumber < mmoLineNumbers.Lines.Count) then
+      if IsEditorSource and (sourceLineNumber >= 0) and (sourceLineNumber < mmoLineNumbers.Lines.Count) then
         mmoLineNumbers.Lines[sourceLineNumber] := Format('%s %d', [COMPLETED, sourceLineNumber + 1]);
     end
     else
     begin
-      if IsEditorSource and (sourceLineNumber >= 0) and
-        (sourceLineNumber < mmoLineNumbers.Lines.Count) then
+      if IsEditorSource and (sourceLineNumber >= 0) and (sourceLineNumber < mmoLineNumbers.Lines.Count) then
         mmoLineNumbers.Lines[sourceLineNumber] := Format('%s %d', [ERROR, sourceLineNumber + 1]);
 
       FScriptFailed := True;
@@ -3913,7 +3896,7 @@ var
 begin
   // Result := 0;
 
-  // --- 1) HWND:... or hex handle ---
+  // --- 1) HWND:… or hex handle ---
   if TryParseHWNDToken(Token, h) then
   begin
     if (h <> 0) and IsEditLike(h) then
@@ -3922,7 +3905,7 @@ begin
       Exit(0);
   end;
 
-  // --- 2) ID:... or decimal control ID ---
+  // --- 2) ID:… or decimal control ID ---
   if TryParseControlIdToken(Token, CtrlId) then
   begin
     Result := FindDescendantByControlId(W, CtrlId);
@@ -3971,8 +3954,7 @@ begin
   if ExtractFileExt(FileName) = '' then
     FileName := FileName + '.script';
 
-  if (ExtractFileDrive(FileName) <> '') or
-    ((FileName <> '') and (FileName[1] = PathDelim)) then
+  if (ExtractFileDrive(FileName) <> '') or ((FileName <> '') and (FileName[1] = PathDelim)) then
   begin
     if FileExists(FileName) then
       Exit(ExpandFileName(FileName));
@@ -4628,14 +4610,11 @@ begin
       else // Length(Parts) >= 4
       begin
         // -------- Explicit window form --------
-        // SetText <window> <field> <text...>
+        // SetText <window> <field> <text…>
 
         var RootWnd := ResolveRootWindow(ResolveAlias(parts[1]));
         if RootWnd = 0 then
-          raise Exception.CreateFmt(
-            'Error on line %d. Root "%s" not found.',
-            [lineNumber + 1, parts[1]]
-          );
+          raise Exception.CreateFmt('Error on line %d. Root "%s" not found.', [lineNumber + 1, parts[1]]);
 
         var ScreenX, ScreenY: Integer;
 
@@ -4652,7 +4631,6 @@ begin
 
         SetEditText(EditWnd, parts[3]);
         Exit(True);
-
       end;
     end;
 
@@ -5137,8 +5115,7 @@ begin
       else
       begin
         var ScreenX, ScreenY: Integer;
-        if not TryStrToInt(parts[2], ScreenX) or
-          not TryStrToInt(parts[3], ScreenY) then
+        if not TryStrToInt(parts[2], ScreenX) or not TryStrToInt(parts[3], ScreenY) then
           raise Exception.CreateFmt(
             '%s:%d Coordinate alias "%s" requires integer X and Y coordinates',
             [SourceName, lineNumber + 1, AliasName]);
@@ -5346,8 +5323,7 @@ begin
       Exit;
     end;
 
-    if (LineNumber < mmoLineNumbers.Lines.Count) and
-      (Pos(ERROR, mmoLineNumbers.Lines[LineNumber]) = 1) then
+    if (LineNumber < mmoLineNumbers.Lines.Count) and (Pos(ERROR, mmoLineNumbers.Lines[LineNumber]) = 1) then
       Exit;
 
     mmoLineNumbers.Lines[LineNumber] := Format('%s %d', [COMPLETED, LineNumber + 1]);

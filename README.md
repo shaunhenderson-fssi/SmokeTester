@@ -86,8 +86,8 @@ ID, target it by HWND instead:
 Assert Memo HWND:001616E6 "Expected text"
 ```
 
-To avoid changing IDs and HWNDs, use screen coordinates inside the memo. You can use the inspector tool to get the position of elements on the screen.
-The coordinates are relative to the desktop (top left is 0,0), the same as `MouseClick`:
+To avoid changing IDs and HWNDs (they change each time P1 is rebuilt), use screen coordinates inside the memo. You can use the inspector tool to get the
+position of elements on the screen. The coordinates are relative to the desktop (top left is 0,0), the same as `MouseClick`:
 
 ```text
 Assert Memo 506 366 "Product not found"
