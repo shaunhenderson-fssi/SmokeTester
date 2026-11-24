@@ -1,0 +1,51 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Build SmokeTester (Debug)",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}\\.vscode\\build.ps1",
+            "args": [
+                "-Config",
+                "Debug"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Build and Run SmokeTester (Debug)",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}\\.vscode\\build.ps1",
+            "args": [
+                "-Config",
+                "Debug",
+                "-RunAfterBuild"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Build SmokeTester (Release)",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}\\.vscode\\build.ps1",
+            "args": [
+                "-Config",
+                "Release"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Build and Run SmokeTester (Release)",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}\\.vscode\\build.ps1",
+            "args": [
+                "-Config",
+                "Release",
+                "-RunAfterBuild"
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

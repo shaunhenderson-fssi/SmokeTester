@@ -1,0 +1,19 @@
+{
+    "delphiLsp.settingsFile": "file:///C:/Develop/Clicker/SmokeTester.delphilsp.json",
+    "delphiLsp.ignoredDiagnosticCodes": [ "F2063" ],
+    "files.encoding": "windows1252",
+    "files.trimTrailingWhitespace": true,
+    "[pascal]": {
+        "editor.foldingStrategy": "indentation",
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.rulers": [ 160 ]
+    },
+    "[cpp]": {
+        "editor.foldingStrategy": "indentation",
+        "editor.insertSpaces": false,
+        "editor.tabSize": 4,
+        "editor.rulers": [ 80 ]
+    },
+    "github-actions.workflows.pinned.workflows": []
+}

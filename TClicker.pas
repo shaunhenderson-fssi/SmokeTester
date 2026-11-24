@@ -65,6 +65,7 @@ uses
 
   Winapi.ActiveX, // CoInitialize
   Winapi.Messages, // Scroll stuff
+  Winapi.RichEdit,
   Winapi.ShellAPI, // ShellExecute
   Winapi.Windows, // HWND
 
@@ -170,11 +171,16 @@ type
     FIsDarkTheme: Boolean;
     FCurrentScriptLine: Integer;
     FCurrentScriptName: string;
+    FUpdatingScriptHighlight: Boolean;
+    FLastScriptLineCount: Integer;
 
     procedure ScriptWindowProc(var Message: TMessage);
     procedure LineNumbersWindowProc(var Message: TMessage);
     procedure ApplySystemTheme;
     procedure ApplyScriptEditorTheme(IsDark: Boolean);
+    procedure HighlightScript;
+    procedure HighlightScriptLine(LineIndex: Integer);
+    procedure HighlightScriptRange(FirstLine, LastLine: Integer; ResetAll: Boolean);
     procedure WMSettingChange(var Message: TMessage); message WM_SETTINGCHANGE;
     procedure WMApplySystemTheme(var Message: TMessage); message WM_APP + 1;
     procedure SyncLineNumbers;
@@ -2445,6 +2451,10 @@ begin
   FThemeInitialized := False;
   FIsDarkTheme := False;
 
+  // Keep the Rich Edit style hook from replacing syntax colors with its theme text color.
+  mmoScript.StyleElements := mmoScript.StyleElements - [seFont, seClient];
+  FLastScriptLineCount := mmoScript.Lines.Count;
+
   FScriptWindowProc := mmoScript.WindowProc;
   mmoScript.WindowProc := ScriptWindowProc;
   FLineNumbersWindowProc := mmoLineNumbers.WindowProc;
@@ -2480,6 +2490,7 @@ begin
     if FileExists(FScriptFilename) then
     begin
       mmoScript.Lines.LoadFromFile(FScriptFilename);
+      HighlightScript;
       FScriptModified := False;
 
       if ConsoleMode then
@@ -2531,13 +2542,13 @@ begin
   if FThemeInitialized and (FIsDarkTheme = IsDark) then
     Exit;
 
+  FIsDarkTheme := IsDark;
   if IsDark then
     TStyleManager.SetStyle('Windows10 Dark')
   else
     TStyleManager.SetStyle(TStyleManager.SystemStyle);
 
   ApplyScriptEditorTheme(IsDark);
-  FIsDarkTheme := IsDark;
   FThemeInitialized := True;
 end;
 
@@ -2575,6 +2586,230 @@ begin
     mmoScript.SelLength := SavedSelLength;
   finally
     mmoScript.OnChange := SavedOnChange;
+  end;
+
+  HighlightScript;
+end;
+
+procedure TForm1.HighlightScript;
+begin
+  HighlightScriptRange(0, mmoScript.Lines.Count - 1, True);
+  FLastScriptLineCount := mmoScript.Lines.Count;
+end;
+
+procedure TForm1.HighlightScriptLine(LineIndex: Integer);
+begin
+  HighlightScriptRange(LineIndex, LineIndex, False);
+end;
+
+procedure TForm1.HighlightScriptRange(FirstLine, LastLine: Integer; ResetAll: Boolean);
+var
+  SavedOnChange: TNotifyEvent;
+  SavedSelStart, SavedSelLength: Integer;
+  DefaultColor, ClickColor, InputColor, CommentColor: TColor;
+  Line, Command: string;
+  LineOffset, CommentStart, TokenStart, TokenLength, CommandLength: Integer;
+  InQuote: Boolean;
+  I, J: Integer;
+  CharFormat: TCharFormat2;
+
+  function IsWhitespace(C: Char): Boolean;
+  begin
+    Result := CharInSet(C, [#9, ' ']);
+  end;
+
+  function IsAssertColorHex(const Prefix: string; HashPosition: Integer): Boolean;
+  var
+    PrefixParts: TArray<string>;
+    HexIndex: Integer;
+    ScreenX, ScreenY: Integer;
+  begin
+    Result := False;
+    if HashPosition + 6 > Length(Line) then
+      Exit;
+
+    PrefixParts := Tokenize(Prefix);
+    if (Length(PrefixParts) <> 4) or
+      not SameText(PrefixParts[0], 'Assert') or
+      not SameText(PrefixParts[1], 'Color') or
+      not TryStrToInt(PrefixParts[2], ScreenX) or
+      not TryStrToInt(PrefixParts[3], ScreenY) then
+      Exit;
+
+    for HexIndex := HashPosition + 1 to HashPosition + 6 do
+      if not CharInSet(Line[HexIndex], ['0'..'9', 'a'..'f', 'A'..'F']) then
+        Exit;
+
+    if HashPosition + 6 = Length(Line) then
+      Exit(True);
+    Result := (HashPosition + 7 <= Length(Line)) and
+      IsWhitespace(Line[HashPosition + 7]);
+  end;
+
+  function FindCommentStart(const Value: string): Integer;
+  var
+    Position: Integer;
+    Quoted: Boolean;
+  begin
+    Result := 0;
+    Quoted := False;
+    Position := 1;
+    while Position <= Length(Value) do
+    begin
+      if Value[Position] = '"' then
+      begin
+        if (Position < Length(Value)) and (Value[Position + 1] = '"') then
+        begin
+          Inc(Position, 2);
+          Continue;
+        end;
+        Quoted := not Quoted;
+      end
+      else if not Quoted then
+      begin
+        if CharInSet(Value[Position], [';', '#']) then
+        begin
+          if (Value[Position] <> '#') or not IsAssertColorHex(Copy(Value, 1, Position - 1), Position) then
+            Exit(Position);
+          Inc(Position, 7);
+          Continue;
+        end;
+
+        if (Value[Position] = '/') and (Position < Length(Value)) and (Value[Position + 1] = '/') then
+          Exit(Position);
+      end;
+      Inc(Position);
+    end;
+  end;
+
+  procedure ApplyRange(Start, Count: Integer; Color: TColor; Bold: Boolean);
+  begin
+    if Count <= 0 then
+      Exit;
+    mmoScript.SelStart := Start;
+    mmoScript.SelLength := Count;
+    FillChar(CharFormat, SizeOf(CharFormat), 0);
+    CharFormat.cbSize := SizeOf(CharFormat);
+    CharFormat.dwMask := CFM_COLOR or CFM_BOLD or CFM_ITALIC or CFM_UNDERLINE or CFM_STRIKEOUT;
+    CharFormat.crTextColor := ColorToRGB(Color);
+    if Bold then
+      CharFormat.dwEffects := CFE_BOLD;
+    SendMessage(mmoScript.Handle, EM_SETCHARFORMAT, SCF_SELECTION, LPARAM(@CharFormat));
+  end;
+
+begin
+  if FUpdatingScriptHighlight then
+    Exit;
+
+  FUpdatingScriptHighlight := True;
+  SavedOnChange := mmoScript.OnChange;
+  SavedSelStart := mmoScript.SelStart;
+  SavedSelLength := mmoScript.SelLength;
+  mmoScript.OnChange := nil;
+  try
+    if FIsDarkTheme then
+    begin
+      DefaultColor := RGB(240, 240, 240);
+      ClickColor := RGB(86, 156, 214);
+      InputColor := RGB(220, 160, 110);
+      CommentColor := RGB(106, 153, 85);
+    end
+    else
+    begin
+      DefaultColor := clWindowText;
+      ClickColor := RGB(0, 0, 192);
+      InputColor := RGB(192, 96, 0);
+      CommentColor := RGB(0, 128, 0);
+    end;
+
+    if ResetAll then
+    begin
+      mmoScript.SelectAll;
+      ApplyRange(0, mmoScript.GetTextLen, DefaultColor, False);
+    end;
+
+    for I := Max(0, FirstLine) to Min(LastLine, mmoScript.Lines.Count - 1) do
+    begin
+      Line := mmoScript.Lines[I];
+      LineOffset := SendMessage(mmoScript.Handle, EM_LINEINDEX, I, 0);
+      if not ResetAll then
+        ApplyRange(LineOffset, Length(Line), DefaultColor, False);
+
+      CommentStart := FindCommentStart(Line);
+      if CommentStart = 0 then
+        CommentStart := Length(Line) + 1;
+
+      TokenStart := 1;
+      while (TokenStart < CommentStart) and IsWhitespace(Line[TokenStart]) do
+        Inc(TokenStart);
+      if TokenStart < CommentStart then
+      begin
+        InQuote := False;
+        J := TokenStart;
+        while J < CommentStart do
+        begin
+          if Line[J] = '"' then
+          begin
+            if (J < CommentStart - 1) and (Line[J + 1] = '"') then
+            begin
+              Inc(J, 2);
+              Continue;
+            end;
+            InQuote := not InQuote;
+          end
+          else if IsWhitespace(Line[J]) and not InQuote then
+            Break;
+          Inc(J);
+        end;
+
+        CommandLength := J - TokenStart;
+        Command := Copy(Line, TokenStart, CommandLength);
+        if SameText(Command, 'ClickButton') or SameText(Command, 'ClickElement') or
+          SameText(Command, 'MouseClick') or SameText(Command, 'MouseWheel') or
+          SameText(Command, 'Close') then
+          ApplyRange(LineOffset + TokenStart - 1, CommandLength, ClickColor, False)
+        else if SameText(Command, 'SetText') or SameText(Command, 'PressKey') or
+          SameText(Command, 'TypeText') or SameText(Command, 'TypePassword') then
+          ApplyRange(LineOffset + TokenStart - 1, CommandLength, InputColor, False);
+
+        TokenStart := J;
+        while (TokenStart < CommentStart) and IsWhitespace(Line[TokenStart]) do
+          Inc(TokenStart);
+      end;
+
+      if TokenStart < CommentStart then
+      begin
+        InQuote := False;
+        J := TokenStart;
+        while J < CommentStart do
+        begin
+          if Line[J] = '"' then
+          begin
+            if (J < CommentStart - 1) and (Line[J + 1] = '"') then
+            begin
+              Inc(J, 2);
+              Continue;
+            end;
+            InQuote := not InQuote;
+          end
+          else if IsWhitespace(Line[J]) and not InQuote then
+            Break;
+          Inc(J);
+        end;
+        TokenLength := J - TokenStart;
+        ApplyRange(LineOffset + TokenStart - 1, TokenLength, DefaultColor, True);
+      end;
+
+      if CommentStart <= Length(Line) then
+        ApplyRange(LineOffset + CommentStart - 1, Length(Line) - CommentStart + 1,
+          CommentColor, False);
+    end;
+
+    mmoScript.SelStart := SavedSelStart;
+    mmoScript.SelLength := SavedSelLength;
+  finally
+    mmoScript.OnChange := SavedOnChange;
+    FUpdatingScriptHighlight := False;
   end;
 end;
 
@@ -2862,9 +3097,9 @@ begin
 
     if dlg.Execute then
     begin
-      mmoScript.PlainText := True;
       FScriptFilename := dlg.FileName;
       mmoScript.Lines.LoadFromFile(FScriptFilename, TEncoding.UTF8);
+      HighlightScript;
       FScriptModified := False;
       Caption := FScriptFilename + ' - SmokeTester';
     end;
@@ -2918,6 +3153,8 @@ begin
       dlg.Free;
     end;
   end;
+
+  HighlightScript;
 
   SL := TStringList.Create;
   try
@@ -3251,17 +3488,23 @@ end;
 /// </summary>
 /// <param name="Sender" type="TObject">The object that triggered the event.</param>
 procedure TForm1.mmoScriptChange(Sender: TObject);
+var
+  LineCount, CurrentLine, FirstChangedLine: Integer;
 begin
   FStepLine := -1;
-  SendMessage(mmoLineNumbers.Handle, WM_SETREDRAW, 0, 0);
-  try
-    mmoLineNumbers.Lines.Clear;
+  LineCount := mmoScript.Lines.Count;
+  if LineCount <> FLastScriptLineCount then
+  begin
+    SendMessage(mmoLineNumbers.Handle, WM_SETREDRAW, 0, 0);
+    try
+      mmoLineNumbers.Lines.Clear;
 
-    for var i := 0 to mmoScript.Lines.Count - 1 do
-      mmoLineNumbers.Lines.Add(IntToStr(i + 1));
-  finally
-    SendMessage(mmoLineNumbers.Handle, WM_SETREDRAW, 1, 0);
-    mmoLineNumbers.Invalidate;
+      for var i := 0 to LineCount - 1 do
+        mmoLineNumbers.Lines.Add(IntToStr(i + 1));
+    finally
+      SendMessage(mmoLineNumbers.Handle, WM_SETREDRAW, 1, 0);
+      mmoLineNumbers.Invalidate;
+    end;
   end;
 
   SyncLineNumbers;
@@ -3271,6 +3514,16 @@ begin
     lblStatus.Caption := 'Recording macro...'
   else
     lblStatus.Caption := 'Ready';
+
+  CurrentLine := SendMessage(mmoScript.Handle, EM_LINEFROMCHAR, mmoScript.SelStart, 0);
+  CurrentLine := Max(0, Min(CurrentLine, LineCount - 1));
+  FirstChangedLine := CurrentLine;
+  if LineCount > FLastScriptLineCount then
+    FirstChangedLine := Max(0, CurrentLine - (LineCount - FLastScriptLineCount));
+
+  for var LineIndex := FirstChangedLine to CurrentLine do
+    HighlightScriptLine(LineIndex);
+  FLastScriptLineCount := LineCount;
 end;
 
 procedure TForm1.ScriptWindowProc(var Message: TMessage);
