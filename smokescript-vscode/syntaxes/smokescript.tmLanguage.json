@@ -1,0 +1,13 @@
+{
+  "scopeName": "source.smokescript",
+  "patterns": [
+    { "name": "comment.line.smokescript", "match": ";.*$|//.*$|#(?![0-9A-Fa-f]{6}\\b).*$" },
+    { "name": "string.quoted.double.smokescript", "begin": "\"", "end": "\"" },
+    { "name": "constant.numeric.smokescript", "match": "\\b\\d+\\b" },
+    { "name": "constant.other.color.smokescript", "match": "#[0-9A-Fa-f]{6}\\b" },
+    {
+      "name": "keyword.control.smokescript",
+      "match": "(?i)^\\s*(Alias|Assert|ClickButton|ClickElement|Close|DebugMode|DumpHere|DumpWindow|LaneTool|Load|MouseClick|MouseWheel|PressKey|SetPause|SetText|Sleep|Stop|TypePassword|TypeText)\\b"
+    }
+  ]
+}
